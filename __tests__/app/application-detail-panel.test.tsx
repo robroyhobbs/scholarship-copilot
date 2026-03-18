@@ -330,6 +330,107 @@ describe("ApplicationDetailPanel", () => {
     expect(await screen.findByText(/1 of 1 application items ready/i)).toBeInTheDocument();
   });
 
+  it("offers richer rewrite actions for an existing draft", async () => {
+    const fetchMock = vi
+      .spyOn(global, "fetch")
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            application: {
+              id: "app-1",
+              scholarshipId: "scholarship-1",
+              title: "STEM Leaders Scholarship",
+              sponsorName: "Bright Futures Foundation",
+              sourceType: "paste",
+              status: "draft",
+              extractionStatus: "completed",
+              deadline: "2026-04-15",
+              questions: [
+                {
+                  id: "question-1",
+                  prompt: "Tell us about your leadership in STEM.",
+                  type: "essay",
+                  focusArea: "leadership_service",
+                  orderIndex: 0,
+                  draft: {
+                    id: "draft-1",
+                    content:
+                      "I led our robotics rebuild and learned how to listen before directing the team.",
+                    grounding: ["leadershipRoles"],
+                  },
+                },
+              ],
+            },
+          }),
+          { status: 200 },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            draft: {
+              id: "draft-1",
+              questionId: "question-1",
+              content:
+                "Leading our robotics rebuild taught me to listen before directing the team.",
+              grounding: ["leadershipRoles"],
+            },
+          }),
+          { status: 200 },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            draft: {
+              id: "draft-1",
+              questionId: "question-1",
+              content:
+                "For me, leading our robotics rebuild taught me to listen before directing the team.",
+              grounding: ["leadershipRoles"],
+            },
+          }),
+          { status: 200 },
+        ),
+      );
+
+    render(React.createElement(ApplicationDetailPanel, { applicationId: "app-1" }));
+
+    fireEvent.click(
+      await screen.findByRole("button", { name: /tighten opening for question 1/i }),
+    );
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith("/api/questions/question-1/rewrite", {
+        method: "POST",
+        headers: expect.any(Headers),
+        body: JSON.stringify({ action: "tighten_opening" }),
+      });
+    });
+
+    expect(
+      await screen.findByText(/leading our robotics rebuild taught me to listen/i),
+    ).toBeInTheDocument();
+
+    fireEvent.click(
+      await screen.findByRole("button", {
+        name: /make draft more personal for question 1/i,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenLastCalledWith("/api/questions/question-1/rewrite", {
+        method: "POST",
+        headers: expect.any(Headers),
+        body: JSON.stringify({ action: "make_more_personal" }),
+      });
+    });
+
+    expect(
+      await screen.findByText(/for me, leading our robotics rebuild taught me to listen/i),
+    ).toBeInTheDocument();
+  });
+
   it("shows follow-up questions when more profile context is needed before drafting", async () => {
     const fetchMock = vi
       .spyOn(global, "fetch")

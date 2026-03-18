@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api/client";
+import type { DraftRewriteAction } from "@/lib/drafts/draft-rewrite-service";
 import type { ScholarshipApplicationDetail } from "@/lib/scholarships/application-schema";
 import { buildSubmissionChecklist } from "@/lib/checklist/submission-checklist";
 import { formatDraftConstraintLabel } from "@/lib/drafts/draft-constraints";
@@ -308,7 +309,10 @@ export function ApplicationDetailPanel({
     }
   }
 
-  async function handleRewriteDraft(questionId: string) {
+  async function handleRewriteDraft(
+    questionId: string,
+    action: DraftRewriteAction,
+  ) {
     setRewritingQuestionId(questionId);
     setError("");
 
@@ -316,7 +320,7 @@ export function ApplicationDetailPanel({
       const response = await apiFetch(`/api/questions/${questionId}/rewrite`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "shorten_to_limit" }),
+        body: JSON.stringify({ action }),
       });
       const body = await response.json();
 
@@ -586,11 +590,35 @@ export function ApplicationDetailPanel({
                     className="secondary-button"
                     type="button"
                     aria-label={`Shorten to fit limit for question ${question.orderIndex + 1}`}
-                    onClick={() => handleRewriteDraft(question.id)}
+                    onClick={() => handleRewriteDraft(question.id, "shorten_to_limit")}
                   >
                     {rewritingQuestionId === question.id
                       ? "Shortening..."
                       : "Shorten to fit limit"}
+                  </button>
+                ) : null}
+                {question.draft ? (
+                  <button
+                    className="secondary-button"
+                    type="button"
+                    aria-label={`Tighten opening for question ${question.orderIndex + 1}`}
+                    onClick={() => handleRewriteDraft(question.id, "tighten_opening")}
+                  >
+                    {rewritingQuestionId === question.id
+                      ? "Rewriting..."
+                      : "Tighten opening"}
+                  </button>
+                ) : null}
+                {question.draft ? (
+                  <button
+                    className="secondary-button"
+                    type="button"
+                    aria-label={`Make draft more personal for question ${question.orderIndex + 1}`}
+                    onClick={() => handleRewriteDraft(question.id, "make_more_personal")}
+                  >
+                    {rewritingQuestionId === question.id
+                      ? "Rewriting..."
+                      : "Make more personal"}
                   </button>
                 ) : null}
                 <button
