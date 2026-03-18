@@ -39,7 +39,10 @@ const essayQuestion = {
   id: "question-1",
   prompt: "Tell us about your leadership in STEM and why it matters.",
   type: "essay" as const,
+  focusArea: "leadership_service" as const,
   orderIndex: 0,
+  wordLimit: null,
+  characterLimit: null,
 };
 
 describe("generateDraftForQuestion", () => {
@@ -116,5 +119,41 @@ describe("generateDraftForQuestion", () => {
     expect(result.content).toContain("Maya");
     expect(result.content).toContain("Computer Science");
     expect(result.grounding).toContain("leadershipRoles");
+  });
+
+  it("passes explicit response limits to Vertex and trims the result to fit", async () => {
+    getVertexDraftRuntimeConfig.mockReturnValue({
+      project: "gen-lang-client-0405402450",
+      location: "us-central1",
+      model: "gemini-2.5-flash",
+    });
+
+    const generateContent = vi.fn().mockResolvedValue({
+      text: "I lead with empathy collaboration precision and follow-through every day.",
+    });
+    GoogleGenAI.mockImplementation(function MockGoogleGenAI() {
+      return {
+        models: {
+          generateContent,
+        },
+      };
+    });
+
+    const result = await generateDraftForQuestion(baseProfile, {
+      id: "question-2",
+      prompt: "In 5 words or less, describe your leadership style.",
+      type: "short_answer",
+      focusArea: "leadership_service",
+      orderIndex: 1,
+      wordLimit: 5,
+      characterLimit: null,
+    });
+
+    expect(generateContent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        contents: expect.stringContaining("Stay within 5 words."),
+      }),
+    );
+    expect(result.content.split(/\s+/)).toHaveLength(5);
   });
 });

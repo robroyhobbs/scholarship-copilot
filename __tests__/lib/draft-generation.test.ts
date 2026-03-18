@@ -27,7 +27,10 @@ describe("generateGroundedDraft", () => {
         id: "question-1",
         prompt: "Tell us about your leadership in STEM and why it matters.",
         type: "essay",
+        focusArea: "leadership_service",
         orderIndex: 0,
+        wordLimit: null,
+        characterLimit: null,
       },
     );
 
@@ -69,11 +72,49 @@ describe("generateGroundedDraft", () => {
         id: "question-2",
         prompt: "Upload your transcript and resume.",
         type: "attachment",
+        focusArea: "attachment",
         orderIndex: 1,
+        wordLimit: null,
+        characterLimit: null,
       },
     );
 
     expect(result.content).toMatch(/prepare the required attachment/i);
     expect(result.grounding).toEqual(["questionType"]);
+  });
+
+  it("keeps short-answer fallback drafts within the question word limit", () => {
+    const result = generateGroundedDraft(
+      {
+        firstName: "Maya",
+        lastName: "Carter",
+        email: "maya@example.com",
+        schoolName: "State University",
+        academicYear: "junior",
+        intendedMajor: "Computer Science",
+        careerGoal: "Build tools that expand access to education",
+        gpa: "",
+        extracurriculars: ["Robotics Club"],
+        leadershipRoles: ["Robotics Club captain"],
+        volunteerWork: ["Weekend coding mentor"],
+        workExperience: [],
+        awards: [],
+        financialNeedContext: "",
+        personalThemes: ["Community-minded builder"],
+        writingPreferences: "",
+        challengesAdversity: "",
+      },
+      {
+        id: "question-3",
+        prompt: "In 8 words or less, describe your leadership style.",
+        type: "short_answer",
+        focusArea: "leadership_service",
+        orderIndex: 2,
+        wordLimit: 8,
+        characterLimit: null,
+      },
+    );
+
+    expect(result.content.split(/\s+/)).toHaveLength(8);
   });
 });

@@ -1,3 +1,4 @@
+import { enforceDraftConstraints } from "@/lib/drafts/draft-constraints";
 import type { StudentProfileInput } from "@/lib/profile/student-profile";
 import type { ScholarshipApplicationQuestion } from "@/lib/scholarships/application-schema";
 
@@ -89,19 +90,22 @@ export function generateGroundedDraft(
   if (supportSentence) grounding.push("financialNeedContext");
 
   return {
-    content: [
-      intro,
-      leadershipSentence,
-      serviceSentence,
-      academicInterestSentence,
-      signatureStorySentence,
-      backgroundSentence,
-      themeSentence,
-      goalSentence,
-      supportSentence,
-    ]
-      .filter(Boolean)
-      .join(" "),
+    content: enforceDraftConstraints(
+      [
+        intro,
+        leadershipSentence,
+        serviceSentence,
+        academicInterestSentence,
+        signatureStorySentence,
+        backgroundSentence,
+        themeSentence,
+        goalSentence,
+        supportSentence,
+      ]
+        .filter(Boolean)
+        .join(" "),
+      question,
+    ),
     grounding,
   };
 }

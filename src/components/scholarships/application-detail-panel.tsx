@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api/client";
 import type { ScholarshipApplicationDetail } from "@/lib/scholarships/application-schema";
 import { buildSubmissionChecklist } from "@/lib/checklist/submission-checklist";
+import { formatDraftConstraintLabel } from "@/lib/drafts/draft-constraints";
 
 export function ApplicationDetailPanel({
   applicationId,
@@ -98,6 +99,9 @@ export function ApplicationDetailPanel({
   const readyAttachmentCount = attachmentQuestions.filter(
     (question) => question.attachmentReady,
   ).length;
+  const checklistItemsByQuestionId = new Map(
+    application.checklist.items.map((item) => [item.questionId, item]),
+  );
 
   async function handleGenerateDraft(questionId: string) {
     setPendingQuestionId(questionId);
@@ -320,6 +324,26 @@ export function ApplicationDetailPanel({
         <p className="checklist-summary">
           {application.checklist.completedItems} of {application.checklist.totalItems} application items ready
         </p>
+        {application.checklist.revisionRequiredPrompts?.length ? (
+          <div className="checklist-warning">
+            <p className="checklist-warning-title">Needs revision before submission</p>
+            <ul className="clean-list">
+              {application.checklist.revisionRequiredPrompts.map((prompt) => (
+                <li key={prompt}>{prompt}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+        {application.checklist.missingResponsePrompts?.length ? (
+          <div className="checklist-warning">
+            <p className="checklist-warning-title">Missing response</p>
+            <ul className="clean-list">
+              {application.checklist.missingResponsePrompts.map((prompt) => (
+                <li key={prompt}>{prompt}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
         {application.checklist.missingAttachmentPrompts.length ? (
           <div className="checklist-warning">
             <p className="checklist-warning-title">Missing attachment</p>
@@ -329,9 +353,12 @@ export function ApplicationDetailPanel({
               ))}
             </ul>
           </div>
-        ) : (
+        ) : null}
+        {!(application.checklist.revisionRequiredPrompts?.length ||
+          application.checklist.missingResponsePrompts?.length ||
+          application.checklist.missingAttachmentPrompts.length) ? (
           <p className="status-message">All required items are ready.</p>
-        )}
+        ) : null}
         <Link className="secondary-link inline-link" href={`/scholarships/${applicationId}/review`}>
           Review export packet
         </Link>
@@ -352,6 +379,19 @@ export function ApplicationDetailPanel({
                   <p className="status-note">
                     Focus area: {formatFocusAreaLabel(question.focusArea)}
                   </p>
+                ) : null}
+                {formatDraftConstraintLabel(question) ? (
+                  <p className="status-note">{formatDraftConstraintLabel(question)}</p>
+                ) : null}
+                {checklistItemsByQuestionId.get(question.id)?.status === "needs_revision" ? (
+                  <div className="checklist-warning">
+                    <p className="checklist-warning-title">
+                      Needs revision before submission
+                    </p>
+                    <p className="status-note">
+                      {checklistItemsByQuestionId.get(question.id)?.note}
+                    </p>
+                  </div>
                 ) : null}
                 {question.draft ? (
                   <div className="draft-card">

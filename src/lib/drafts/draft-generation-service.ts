@@ -1,4 +1,8 @@
 import { GoogleGenAI } from "@google/genai";
+import {
+  buildDraftConstraintInstructions,
+  enforceDraftConstraints,
+} from "@/lib/drafts/draft-constraints";
 import type { StudentProfileInput } from "@/lib/profile/student-profile";
 import type { ScholarshipApplicationQuestion } from "@/lib/scholarships/application-schema";
 import { generateGroundedDraft } from "@/lib/drafts/generate-grounded-draft";
@@ -20,6 +24,7 @@ function buildDraftPrompt(
   fallback: DraftGenerationResult,
 ) {
   const focusArea = question.focusArea ?? "general";
+  const constraintInstructions = buildDraftConstraintInstructions(question);
 
   return [
     "You are writing a scholarship application response for a student.",
@@ -30,6 +35,7 @@ function buildDraftPrompt(
     question.type === "short_answer"
       ? "Keep the response concise and direct."
       : "Write a polished scholarship-ready paragraph.",
+    ...constraintInstructions,
     `Primary focus area: ${focusArea.replaceAll("_", " ")}`,
     "",
     `Question: ${question.prompt}`,
@@ -72,12 +78,18 @@ export async function generateDraftForQuestion(
   const fallbackWithContext =
     followUpDetails.length > 0
       ? {
-          content: `${fallback.content} ${followUpDetails.join(" ")}`.trim(),
+          content: enforceDraftConstraints(
+            `${fallback.content} ${followUpDetails.join(" ")}`.trim(),
+            question,
+          ),
           grounding: Array.from(
             new Set([...fallback.grounding, "applicationFollowUpAnswers"]),
           ),
         }
-      : fallback;
+      : {
+          ...fallback,
+          content: enforceDraftConstraints(fallback.content, question),
+        };
 
   if (question.type === "attachment") {
     return fallbackWithContext;
@@ -109,7 +121,7 @@ export async function generateDraftForQuestion(
     }
 
     return {
-      content,
+      content: enforceDraftConstraints(content, question),
       grounding: fallbackWithContext.grounding,
     };
   } catch {

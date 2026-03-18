@@ -130,4 +130,45 @@ describe("ExportPacketPanel", () => {
     expect(await screen.findByText(/tighten the opening sentence/i)).toBeInTheDocument();
     expect(await screen.findByText(/reviewed with gemini-2.5-pro/i)).toBeInTheDocument();
   });
+
+  it("shows revision-required prompts as open items in the review packet", async () => {
+    vi.spyOn(global, "fetch")
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            packet: {
+              title: "STEM Leaders Scholarship",
+              sponsorName: "Bright Futures Foundation",
+              deadline: "2026-04-15",
+              readyToSubmit: false,
+              missingItems: ["In 5 words or less, describe your leadership style."],
+              privacyWarnings: [],
+              sections: [
+                {
+                  questionId: "question-1",
+                  kind: "response",
+                  heading: "In 5 words or less, describe your leadership style.",
+                  body: "Thoughtful collaborative service-driven leadership style for community teams",
+                  redactedBody:
+                    "Thoughtful collaborative service-driven leadership style for community teams",
+                },
+              ],
+            },
+          }),
+          { status: 200 },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ versions: [] }), { status: 200 }),
+      );
+
+    render(React.createElement(ExportPacketPanel, { applicationId: "app-1" }));
+
+    expect(await screen.findByText(/still missing/i)).toBeInTheDocument();
+    expect(
+      (await screen.findAllByText(/in 5 words or less, describe your leadership style/i))
+        .length,
+    ).toBeGreaterThan(0);
+    expect(await screen.findByText(/needs one more pass/i)).toBeInTheDocument();
+  });
 });

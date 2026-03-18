@@ -252,6 +252,52 @@ describe("ApplicationDetailPanel", () => {
     expect(await screen.findByText(/all required items are ready/i)).toBeInTheDocument();
   });
 
+  it("shows response limits and revision warnings for over-limit drafts", async () => {
+    vi.spyOn(global, "fetch").mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          application: {
+            id: "app-1",
+            scholarshipId: "scholarship-1",
+            title: "STEM Leaders Scholarship",
+            sponsorName: "Bright Futures Foundation",
+            sourceType: "paste",
+            status: "draft",
+            extractionStatus: "completed",
+            deadline: "2026-04-15",
+            questions: [
+              {
+                id: "question-1",
+                prompt: "In 5 words or less, describe your leadership style.",
+                type: "short_answer",
+                focusArea: "leadership_service",
+                orderIndex: 0,
+                wordLimit: 5,
+                characterLimit: null,
+                draft: {
+                  id: "draft-1",
+                  content:
+                    "Thoughtful collaborative service-driven leadership style for community teams",
+                  grounding: ["leadershipRoles"],
+                },
+              },
+            ],
+          },
+        }),
+        { status: 200 },
+      ),
+    );
+
+    render(React.createElement(ApplicationDetailPanel, { applicationId: "app-1" }));
+
+    expect(await screen.findByText(/target: 5 words max/i)).toBeInTheDocument();
+    expect(
+      (await screen.findAllByText(/needs revision before submission/i)).length,
+    ).toBeGreaterThan(0);
+    expect(await screen.findByText(/above the 5-word limit/i)).toBeInTheDocument();
+    expect(await screen.findByText(/0 of 1 application items ready/i)).toBeInTheDocument();
+  });
+
   it("shows follow-up questions when more profile context is needed before drafting", async () => {
     const fetchMock = vi
       .spyOn(global, "fetch")

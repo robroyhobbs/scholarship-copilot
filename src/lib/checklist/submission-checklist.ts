@@ -1,3 +1,4 @@
+import { countWords } from "@/lib/drafts/draft-constraints";
 import type { ScholarshipApplicationQuestion } from "@/lib/scholarships/application-schema";
 
 export interface SubmissionChecklistItem {
@@ -15,13 +16,6 @@ export interface SubmissionChecklist {
   missingAttachmentPrompts: string[];
   missingResponsePrompts?: string[];
   revisionRequiredPrompts?: string[];
-}
-
-function countWords(content: string) {
-  return content
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean).length;
 }
 
 function buildRevisionNote(question: ScholarshipApplicationQuestion, draftContent: string) {
