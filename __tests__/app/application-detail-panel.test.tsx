@@ -58,6 +58,7 @@ describe("ApplicationDetailPanel", () => {
       await screen.findByRole("heading", { name: /tell us about your leadership in stem/i }),
     ).toBeInTheDocument();
     expect(await screen.findByText(/focus area: leadership service/i)).toBeInTheDocument();
+    expect(await screen.findByText(/ready to draft/i)).toBeInTheDocument();
 
     fireEvent.click(
       screen.getByRole("button", { name: /generate draft for question 1/i }),
@@ -72,6 +73,7 @@ describe("ApplicationDetailPanel", () => {
 
     expect(await screen.findByText(/generated draft content/i)).toBeInTheDocument();
     expect(await screen.findByText(/grounded in leadershipRoles/i)).toBeInTheDocument();
+    expect(await screen.findByText(/draft ready/i)).toBeInTheDocument();
   });
 
   it("shows reusable suggestions and saves a draft to the answer library", async () => {

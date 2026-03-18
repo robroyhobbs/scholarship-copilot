@@ -93,15 +93,21 @@ describe("ExportPacketPanel", () => {
     ).toBeInTheDocument();
     expect(await screen.findByText(/generated draft content with maya@example.com/i)).toBeInTheDocument();
     expect(await screen.findByText(/upload your transcript/i)).toBeInTheDocument();
-    expect(await screen.findByText(/needs one more pass/i)).toBeInTheDocument();
+    expect((await screen.findAllByText(/needs one more pass/i)).length).toBeGreaterThan(0);
     expect(await screen.findByText(/privacy review needed/i)).toBeInTheDocument();
     expect(await screen.findByText(/contains an email address/i)).toBeInTheDocument();
     expect(await screen.findByText(/version history/i)).toBeInTheDocument();
     expect(await screen.findByText(/submission packet/i)).toBeInTheDocument();
+    expect(await screen.findByText(/packet status/i)).toBeInTheDocument();
+    expect(
+      await screen.findByText(
+        /use this page to close missing items, clear privacy warnings, and save the version you actually want to send/i,
+      ),
+    ).toBeInTheDocument();
     expect(await screen.findByText(/final handoff copy/i)).toBeInTheDocument();
     expect(await screen.findByText(/1 section saved/i)).toBeInTheDocument();
-    expect(await screen.findByText(/1 response ready/i)).toBeInTheDocument();
-    expect(await screen.findByText(/0 attachments ready/i)).toBeInTheDocument();
+    expect((await screen.findAllByText(/1 response ready/i)).length).toBeGreaterThan(0);
+    expect((await screen.findAllByText(/0 attachments ready/i)).length).toBeGreaterThan(0);
     expect(await screen.findByText(/1 missing item/i)).toBeInTheDocument();
     expect(await screen.findByText(/1 privacy flag/i)).toBeInTheDocument();
 
@@ -169,6 +175,6 @@ describe("ExportPacketPanel", () => {
       (await screen.findAllByText(/in 5 words or less, describe your leadership style/i))
         .length,
     ).toBeGreaterThan(0);
-    expect(await screen.findByText(/needs one more pass/i)).toBeInTheDocument();
+    expect((await screen.findAllByText(/needs one more pass/i)).length).toBeGreaterThan(0);
   });
 });

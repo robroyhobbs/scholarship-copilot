@@ -12,6 +12,11 @@ export function ApplicationDetailPanel({
 }: {
   applicationId: string;
 }) {
+  type QuestionDetail = ScholarshipApplicationDetail["questions"][number];
+  type QuestionChecklistItem = NonNullable<
+    ReturnType<typeof buildSubmissionChecklist>["items"][number]
+  >;
+
   function formatCount(count: number, singular: string, plural: string = `${singular}s`) {
     return `${count} ${count === 1 ? singular : plural}`;
   }
@@ -28,6 +33,31 @@ export function ApplicationDetailPanel({
       ...detail,
       checklist: buildSubmissionChecklist(detail.questions),
     };
+  }
+
+  function getQuestionStatus(
+    question: QuestionDetail,
+    checklistItem?: QuestionChecklistItem,
+  ) {
+    if (question.type === "attachment") {
+      return question.attachmentReady
+        ? { label: "Attachment ready", tone: "success" as const }
+        : { label: "Attachment missing", tone: "warning" as const };
+    }
+
+    if (checklistItem?.status === "needs_revision") {
+      return { label: "Needs revision", tone: "warning" as const };
+    }
+
+    if (question.followUpQuestions?.length) {
+      return { label: "Need more detail", tone: "accent" as const };
+    }
+
+    if (question.draft) {
+      return { label: "Draft ready", tone: "success" as const };
+    }
+
+    return { label: "Ready to draft", tone: "neutral" as const };
   }
 
   const [application, setApplication] =
@@ -413,15 +443,42 @@ export function ApplicationDetailPanel({
           application.questions.map((question) => (
             <article key={question.id} className="workspace-card">
               <div className="workspace-card-main">
-                <p className="eyebrow">{question.type.replace("_", " ")}</p>
+                <div className="workspace-card-topline">
+                  <div className="workspace-chip-row">
+                    <span className="status-pill neutral">
+                      Question {question.orderIndex + 1}
+                    </span>
+                    <span className="status-pill soft">
+                      {question.type.replace("_", " ")}
+                    </span>
+                    {question.focusArea !== "general" ? (
+                      <span className="status-pill accent">
+                        {formatFocusAreaLabel(question.focusArea)}
+                      </span>
+                    ) : null}
+                    {formatDraftConstraintLabel(question) ? (
+                      <span className="status-pill soft">
+                        {formatDraftConstraintLabel(question)}
+                      </span>
+                    ) : null}
+                  </div>
+                  <span
+                    className={`status-pill ${getQuestionStatus(
+                      question,
+                      checklistItemsByQuestionId.get(question.id),
+                    ).tone}`}
+                  >
+                    {getQuestionStatus(
+                      question,
+                      checklistItemsByQuestionId.get(question.id),
+                    ).label}
+                  </span>
+                </div>
                 <h3 className="workspace-title">{question.prompt}</h3>
                 {question.focusArea !== "general" ? (
                   <p className="status-note">
                     Focus area: {formatFocusAreaLabel(question.focusArea)}
                   </p>
-                ) : null}
-                {formatDraftConstraintLabel(question) ? (
-                  <p className="status-note">{formatDraftConstraintLabel(question)}</p>
                 ) : null}
                 {checklistItemsByQuestionId.get(question.id)?.status === "needs_revision" ? (
                   <div className="checklist-warning">

@@ -156,6 +156,11 @@ export function ExportPacketPanel({
   const attachmentSections = packet.sections.filter(
     (section) => section.kind === "attachment",
   ).length;
+  const nextStepMessage = packet.privacyWarnings.length
+    ? "Remove or redact the flagged private details before you share this packet."
+    : packet.missingItems.length
+      ? "Close the open items below, then save the exact version you want to submit."
+      : "Save one final snapshot, then use this packet for the portal handoff.";
 
   return (
     <section className="card section">
@@ -178,6 +183,32 @@ export function ExportPacketPanel({
         <span className="mini-step">Check readiness first</span>
         <span className="mini-step">Redact private details if needed</span>
         <span className="mini-step">Save a clean snapshot before submitting</span>
+      </div>
+      <div className="packet-status-band">
+        <div>
+          <p className="eyebrow">Packet Status</p>
+          <p className="checklist-summary">
+            {packet.readyToSubmit ? "Submission-ready" : "Needs one more pass"}
+          </p>
+          <p className="status-note">{nextStepMessage}</p>
+        </div>
+        <div className="packet-status-side">
+          <div className="workspace-chip-row">
+            <span className={`status-pill ${packet.readyToSubmit ? "success" : "warning"}`}>
+              {packet.readyToSubmit ? "Ready to submit" : "Open issues"}
+            </span>
+            <span className="status-pill soft">
+              {formatCount(responseSections, "response ready", "responses ready")}
+            </span>
+            <span className="status-pill soft">
+              {formatCount(
+                attachmentSections,
+                "attachment ready",
+                "attachments ready",
+              )}
+            </span>
+          </div>
+        </div>
       </div>
       <div className="journey-grid workspace-summary-grid">
         <article className="journey-step">

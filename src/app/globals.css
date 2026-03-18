@@ -784,6 +784,56 @@ a {
   flex: 1;
 }
 
+.workspace-card-topline,
+.packet-status-band {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.workspace-chip-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0 12px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.status-pill.neutral,
+.status-pill.soft {
+  background: var(--surface-soft);
+  color: var(--foreground);
+}
+
+.status-pill.accent {
+  border-color: var(--accent-border);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.status-pill.success {
+  border-color: color-mix(in srgb, #2d8a52 38%, var(--border));
+  background: color-mix(in srgb, #2d8a52 12%, var(--surface));
+  color: color-mix(in srgb, #2d8a52 86%, var(--foreground));
+}
+
+.status-pill.warning {
+  border-color: color-mix(in srgb, #b76a1b 36%, var(--border));
+  background: color-mix(in srgb, #b76a1b 12%, var(--surface));
+  color: color-mix(in srgb, #b76a1b 86%, var(--foreground));
+}
+
 .workspace-title {
   margin: 6px 0 0;
   font-size: 1.15rem;
@@ -839,6 +889,22 @@ a {
   background: var(--surface-soft);
   padding: 16px;
   box-shadow: var(--card-shadow-soft);
+}
+
+.packet-status-band {
+  margin-top: 18px;
+  border: 1px solid var(--accent-border);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top right, var(--hero-glow), transparent 34%),
+    linear-gradient(180deg, var(--surface) 0%, var(--surface-soft) 100%);
+  padding: 18px;
+  box-shadow: var(--card-shadow-soft);
+}
+
+.packet-status-side {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .section-band {
@@ -951,11 +1017,17 @@ ul.clean-list {
   }
 
   .workspace-card,
-  .section-split {
+  .section-split,
+  .workspace-card-topline,
+  .packet-status-band {
     flex-direction: column;
   }
 
   .workspace-actions {
+    justify-content: flex-start;
+  }
+
+  .packet-status-side {
     justify-content: flex-start;
   }
 }
