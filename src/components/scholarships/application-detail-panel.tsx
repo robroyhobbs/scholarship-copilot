@@ -43,6 +43,7 @@ export function ApplicationDetailPanel({
   const [savingContextQuestionId, setSavingContextQuestionId] = useState<string | null>(
     null,
   );
+  const [rewritingQuestionId, setRewritingQuestionId] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -277,6 +278,45 @@ export function ApplicationDetailPanel({
     }
   }
 
+  async function handleRewriteDraft(questionId: string) {
+    setRewritingQuestionId(questionId);
+    setError("");
+
+    try {
+      const response = await apiFetch(`/api/questions/${questionId}/rewrite`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "shorten_to_limit" }),
+      });
+      const body = await response.json();
+
+      if (!response.ok) {
+        setError(body.error || "Could not rewrite draft");
+        return;
+      }
+
+      setApplication((current) =>
+        current
+          ? withChecklist({
+              ...current,
+              questions: current.questions.map((question) =>
+                question.id === questionId
+                  ? {
+                      ...question,
+                      draft: body.draft,
+                    }
+                  : question,
+              ),
+            })
+          : current,
+      );
+    } catch {
+      setError("Could not rewrite draft");
+    } finally {
+      setRewritingQuestionId(null);
+    }
+  }
+
   return (
     <section className="card section">
       <p className="eyebrow">{application.sponsorName || "Scholarship"}</p>
@@ -482,6 +522,20 @@ export function ApplicationDetailPanel({
                 ) : null}
               </div>
               <div className="workspace-actions">
+                {question.draft &&
+                checklistItemsByQuestionId.get(question.id)?.status === "needs_revision" &&
+                (question.wordLimit || question.characterLimit) ? (
+                  <button
+                    className="secondary-button"
+                    type="button"
+                    aria-label={`Shorten to fit limit for question ${question.orderIndex + 1}`}
+                    onClick={() => handleRewriteDraft(question.id)}
+                  >
+                    {rewritingQuestionId === question.id
+                      ? "Shortening..."
+                      : "Shorten to fit limit"}
+                  </button>
+                ) : null}
                 <button
                   className="secondary-button"
                   type="button"

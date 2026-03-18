@@ -50,7 +50,11 @@ vi.mock("@/lib/firebase/admin", () => ({
   getFirebaseAdminDb,
 }));
 
-import { getQuestionForDraft, saveDraftResponse } from "@/lib/drafts/draft-repository";
+import {
+  getQuestionForDraft,
+  readDraftResponse,
+  saveDraftResponse,
+} from "@/lib/drafts/draft-repository";
 
 describe("draft repository", () => {
   beforeEach(() => {
@@ -64,7 +68,11 @@ describe("draft repository", () => {
       applicationId: "app-1",
       prompt: "Tell us about your leadership in STEM.",
       type: "essay",
+      focusArea: "leadership_service",
+      wordLimit: 500,
+      characterLimit: null,
       orderIndex: 0,
+      followUpAnswers: [],
     });
 
     await expect(getQuestionForDraft("user-1", "question-1")).resolves.toEqual({
@@ -72,7 +80,11 @@ describe("draft repository", () => {
       applicationId: "app-1",
       prompt: "Tell us about your leadership in STEM.",
       type: "essay",
+      focusArea: "leadership_service",
+      wordLimit: 500,
+      characterLimit: null,
       orderIndex: 0,
+      followUpAnswers: [],
     });
   });
 
@@ -99,5 +111,23 @@ describe("draft repository", () => {
         content: "Generated draft content",
       }),
     );
+  });
+
+  it("reads a stored draft response for the owning user", async () => {
+    draftDocs.set("question-1", {
+      userId: "user-1",
+      applicationId: "app-1",
+      questionId: "question-1",
+      content: "Generated draft content",
+      grounding: ["leadershipRoles"],
+    });
+
+    await expect(readDraftResponse("user-1", "question-1")).resolves.toEqual({
+      id: "question-1",
+      questionId: "question-1",
+      content: "Generated draft content",
+      grounding: ["leadershipRoles"],
+    });
+    await expect(readDraftResponse("user-2", "question-1")).resolves.toBeNull();
   });
 });
