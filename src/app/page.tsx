@@ -1,7 +1,20 @@
 import Link from "next/link";
 import { StudentJourneyCard } from "@/components/chrome/student-journey-card";
 
-const highlights = ["Reusable student profile", "Prompt extraction", "Grounded drafts"];
+const highlights = [
+  {
+    title: "Profile once",
+    body: "Keep your academics, leadership, and story bank ready for every deadline after this one.",
+  },
+  {
+    title: "Extract the real ask",
+    body: "Turn scholarship text into visible prompts, limits, deadlines, and attachments.",
+  },
+  {
+    title: "Rewrite without starting over",
+    body: "Fix weak or over-limit answers in-place instead of rebuilding the draft from scratch.",
+  },
+];
 
 const studentSteps = [
   {
@@ -37,11 +50,12 @@ export default function HomePage() {
               Build your student profile once, turn forms into clear prompts,
               and draft from the real experiences you have already earned.
             </p>
-            <div className="pill-row" aria-label="Service highlights">
+            <div className="signal-grid" aria-label="Service highlights">
               {highlights.map((item) => (
-                <span key={item} className="pill">
-                  {item}
-                </span>
+                <article key={item.title} className="signal-card">
+                  <strong>{item.title}</strong>
+                  <p>{item.body}</p>
+                </article>
               ))}
             </div>
             <div className="hero-actions">

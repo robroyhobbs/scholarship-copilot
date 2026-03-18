@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/chrome/theme-toggle";
 
 const navItems = [
@@ -8,6 +11,8 @@ const navItems = [
 ];
 
 export function SiteHeader() {
+  const pathname = usePathname();
+
   return (
     <header className="site-header">
       <div className="site-header-inner">
@@ -24,7 +29,20 @@ export function SiteHeader() {
         <div className="site-header-actions">
           <nav className="site-nav" aria-label="Primary">
             {navItems.map((item) => (
-              <Link key={item.href} className="site-nav-link" href={item.href}>
+              <Link
+                key={item.href}
+                className={`site-nav-link${
+                  pathname === item.href || pathname?.startsWith(`${item.href}/`)
+                    ? " is-active"
+                    : ""
+                }`}
+                href={item.href}
+                aria-current={
+                  pathname === item.href || pathname?.startsWith(`${item.href}/`)
+                    ? "page"
+                    : undefined
+                }
+              >
                 {item.label}
               </Link>
             ))}
