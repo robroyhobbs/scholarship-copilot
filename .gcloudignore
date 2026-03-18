@@ -1,0 +1,11 @@
+.git
+.gitignore
+.next
+coverage
+node_modules
+firebase-debug.log
+.env
+.env.local
+.env.*.local
+dist
+*.tsbuildinfo
